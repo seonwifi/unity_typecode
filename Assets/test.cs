@@ -35,6 +35,53 @@ public class Exposeble
 		} 
 	}
 }
+public class ExposebleMethod
+{
+	static public bool GetInt(string fullName, ref int outValue)
+	{
+		string []typeNames = fullName.Split(new char[]{'/'}); 
+		int typeNamesLength = typeNames.Length;
+		if(typeNamesLength == 0)
+		{
+			Debug.LogError("NoFound Data => " + fullName);
+			return false;
+		}
+		System.Type type = System.Type.GetType(typeNames[0]);
+		if(type == null)
+		{
+			Debug.LogError("NoFound Data => " + fullName);
+			return false;
+		}
+
+		bool returnValue = false;
+		for(int i = 1; i < typeNamesLength; ++i)
+		{ 
+			MethodInfo mInfo = type.GetMethod(typeNames[i]);
+			if(i == typeNamesLength-1)
+			{
+				object value = mInfo.Invoke(null, null);
+				if(value != null)
+				{
+					if(value.GetType().Name == "int")
+					{
+						outValue = (int)value;
+					}
+					if(value.GetType().Name == "float")
+					{
+						outValue = (int)((float)value);
+					}
+					if(value.GetType().Name == "string")
+					{
+						string value as string;
+
+						outValue = (int)((float)value);
+					}
+				} 
+			}
+		}
+		return returnValue;
+	}
+}
 
 public class test : MonoBehaviour 
 {
