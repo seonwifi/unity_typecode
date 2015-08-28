@@ -1,12 +1,15 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Reflection;
+using System;
+
 public class Abc
 {
 	[Attr_moon()]
-	public string Moon()
+	public float Moon()
 	{
-		return "5678";
+		//return "5678";
+		return 5.2135f;
 	}
 	static public void Moon_static()
 	{
@@ -23,7 +26,6 @@ public class Attr_moon : System.Attribute
 	} 
 }
  
-
 public class Exposeble
 {
 	static Abc a = new Abc();
@@ -38,77 +40,64 @@ public class Exposeble
 }
 public class ExposebleMethod
 {
-	static string TypeName_int =  int.MaxValue.GetType().Name;
-	static string TypeName_float = float.MaxValue.GetType().Name;
-	static string TypeName_string = string.Empty.GetType().Name;
-	static public void InitTypeName()
-	{
 
-	}
+	static string TypeName_int 		= int.MaxValue.GetType().Name;
+	static string TypeName_long 	= long.MaxValue.GetType().Name;
+	static string TypeName_float 	= float.MaxValue.GetType().Name;
+	static string TypeName_double 	= double.MaxValue.GetType().Name;
+	static string TypeName_string 	= string.Empty.GetType().Name;
 
-	static public bool GetInt(string fullName, ref int outValue)
+	static public bool GetHookingObject(ref string fullName, ref object outValue)
 	{
-		string []typeNames = fullName.Split(new char[]{'/'}); 
-		int typeNamesLength = typeNames.Length;
+		string[]	typeNames 		= fullName.Split(new char[]{'/'}); 
+		int 		typeNamesLength = typeNames.Length;
+
 		if(typeNamesLength == 0)
 		{
 			Debug.LogError("NoFound Data => " + fullName);
 			return false;
 		}
+
 		System.Type type = System.Type.GetType(typeNames[0]);
+
 		if(type == null)
 		{
 			Debug.LogError("NoFound Data => " + fullName);
 			return false;
 		}
+		
+		object 	currentObject 		= null;
+		bool 	isSuccess 			= false;
 
-		object currentObject = null;
-		bool isSuccess = false;
 		for(int i = 1; i < typeNamesLength; ++i)
 		{  
 			if(type == null)
 			{
 				return false;
 			}
-
+			
 			MethodInfo mInfo = type.GetMethod(typeNames[i], BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
+
 			if(mInfo == null)
 			{
 				Debug.LogError("Error NoFound Method => " + fullName);
 				return false;
 			}
-
+			
 			currentObject = mInfo.Invoke(currentObject, null);
+
 			if(currentObject == null)
 			{
 				Debug.LogError("Error NoFound Method => " + fullName);
 				return false;
 			}
-
+			
 			if(i == typeNamesLength-1)
 			{ 
 				Debug.Log(currentObject.GetType().Name);
-				if(currentObject.GetType().Name == TypeName_int)
-				{
-					outValue = (int)currentObject;
-					isSuccess = true;
-				}
-				else if(currentObject.GetType().Name == TypeName_float)
-				{
-					outValue = (int)((float)currentObject);
-					isSuccess = true;
-				}
-				else if(currentObject.GetType().Name == TypeName_string)
-				{   
-					if(int.TryParse(((string)currentObject), out outValue) == true)
-					{
-						isSuccess = true;
-					}
-					else
-					{
-						Debug.LogError("Error if(int.TryParse(((string)currentObject), out outValue) == true) NoFound Method => " + fullName);
-					} 
-				}
+	
+				outValue = currentObject; 
+				isSuccess = true;
 			}
 			else
 			{
@@ -117,6 +106,173 @@ public class ExposebleMethod
 		}
 		return isSuccess;
 	}
+	
+
+
+	static public bool GetInt(string fullName, ref int outValue)
+	{
+		bool 	isSuccess 	= false;
+		object 	getObj 		= null;
+
+		if(GetHookingObject(ref fullName, ref getObj))
+		{ 
+			System.Type objType 	= getObj.GetType();
+			string  	objTypeName = getObj.GetType().Name;
+
+			if(objTypeName == TypeName_int)
+			{
+				outValue 	= (int)((int)getObj);
+				isSuccess 	= true;
+			}
+			else if(objTypeName == TypeName_long)
+			{
+				outValue 	= (int)((long)getObj);
+				isSuccess 	= true;
+			}
+			else if(objTypeName == TypeName_float)
+			{ 
+				outValue 	= (int)((float)(getObj));
+				isSuccess 	= true;
+			}  
+			else if(objTypeName == TypeName_double)
+			{ 
+				outValue 	= (int)((double)(getObj));
+				isSuccess 	= true;
+			}   
+			else if(objTypeName == TypeName_string)
+			{ 
+				if(int.TryParse((string)getObj, out outValue))
+				{
+					isSuccess 	= true;
+				}
+				else
+				{
+					Debug.LogError("else if(objTypeName == TypeName_string)");
+				} 
+			}  
+			else
+			{
+				Debug.LogError(string.Format("Get Type Convert Faile type is({0}) full name {1}", objTypeName, fullName));
+			}
+		} 
+ 
+		return isSuccess;
+	}
+
+	static public bool GetFloat(string fullName, ref float outValue)
+	{
+		bool 	isSuccess 	= false;
+		object 	getObj 		= null;
+		
+		if(GetHookingObject(ref fullName, ref getObj))
+		{ 
+			System.Type objType 	= getObj.GetType();
+			string  	objTypeName = getObj.GetType().Name;
+
+			if(objTypeName == TypeName_int)
+			{
+				outValue 	= (float)((int)getObj);
+				isSuccess 	= true;
+			}
+			else if(objTypeName == TypeName_long)
+			{
+				outValue 	= (float)((long)getObj);
+				isSuccess 	= true;
+			}
+			else if(objTypeName == TypeName_float)
+			{ 
+				outValue 	= (float)((float)(getObj));
+				isSuccess 	= true;
+			}  
+			else if(objTypeName == TypeName_double)
+			{ 
+				outValue 	= (float)((double)(getObj));
+				isSuccess 	= true;
+			}  
+			else if(objTypeName == TypeName_string)
+			{ 
+				if(float.TryParse((string)getObj, out outValue))
+				{
+					isSuccess 	= true;
+				}
+				else
+				{
+					Debug.LogError("else if(objTypeName == TypeName_string)");
+				} 
+			}  
+			else
+			{
+				Debug.LogError(string.Format("Get Type Convert Faile type is({0}) full name {1}", objTypeName, fullName));
+			}
+		} 
+		
+		return isSuccess;
+	}
+
+	static public bool GetString(string fullName, ref string outValue)
+	{
+		bool 	isSuccess 	= false;
+		object 	getObj 		= null;
+		
+		if(GetHookingObject(ref fullName, ref getObj))
+		{  
+			System.Type objType 	= getObj.GetType();
+			string  	objTypeName = getObj.GetType().Name;
+			 
+			if(objTypeName == TypeName_string)
+			{ 
+				outValue = (string)getObj; 
+			}  
+			else
+			{
+				IFormattable iFormattable = getObj as IFormattable;
+				
+				if(iFormattable != null)
+				{
+					outValue = iFormattable.ToString();
+					isSuccess 	= true;
+				}
+				else
+				{
+					Debug.LogError(string.Format("Get Type Convert Faile type is({0}) full name {1}", objTypeName, fullName));
+				} 
+			}
+		} 
+		
+		return isSuccess;
+	}
+
+	//	bool  0
+	//	
+	//	byte  0
+	//	
+	//	char  0
+	//	
+	//	DateTime 0
+	//	
+	//	decimal  0
+	//	
+	//	double  0
+	//	
+	//	short  0
+	//	
+	//	int  0
+	//	
+	//	long  0
+	//	
+	//	sbyte 0
+	//	
+	//	float  0
+	//	
+	//	string  0
+	//	
+	//	object  0
+	//	
+	//	ushort  0
+	//	
+	//	uint  0
+	//	
+	//	ulong 0 
 }
 
 public class test : MonoBehaviour 
@@ -158,8 +314,14 @@ public class test : MonoBehaviour
 
 		MethodInfo[] TExposebleMethodInfo = TExposeble.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
 		//MethodInfo []methodInfoTExposeble = TExposeble.GetMembers(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
-		int value = 0;
-		ExposebleMethod.InitTypeName();
+
+		string valueString = "";
+		if(ExposebleMethod.GetString("Exposeble/get_Ex/Moon", ref valueString))
+		{
+			Debug.Log("Success valueString  => " + valueString);
+		}
+
+		int value = 0; 
 		if(ExposebleMethod.GetInt("Exposeble/get_Ex/Moon", ref value))
 		{
 			Debug.Log("Success =>" + value);
