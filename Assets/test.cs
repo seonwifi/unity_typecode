@@ -4,15 +4,16 @@ using System.Reflection;
 public class Abc
 {
 	[Attr_moon()]
-	public void Moon()
+	public string Moon()
 	{
-		
+		return "5678";
 	}
 	static public void Moon_static()
 	{
 		
 	}
 }
+
 public class Attr_moon : System.Attribute
 {
 	
@@ -37,6 +38,14 @@ public class Exposeble
 }
 public class ExposebleMethod
 {
+	static string TypeName_int =  int.MaxValue.GetType().Name;
+	static string TypeName_float = float.MaxValue.GetType().Name;
+	static string TypeName_string = string.Empty.GetType().Name;
+	static public void InitTypeName()
+	{
+
+	}
+
 	static public bool GetInt(string fullName, ref int outValue)
 	{
 		string []typeNames = fullName.Split(new char[]{'/'}); 
@@ -53,33 +62,60 @@ public class ExposebleMethod
 			return false;
 		}
 
-		bool returnValue = false;
+		object currentObject = null;
+		bool isSuccess = false;
 		for(int i = 1; i < typeNamesLength; ++i)
-		{ 
-			MethodInfo mInfo = type.GetMethod(typeNames[i]);
-			if(i == typeNamesLength-1)
+		{  
+			if(type == null)
 			{
-				object value = mInfo.Invoke(null, null);
-				if(value != null)
-				{
-					if(value.GetType().Name == "int")
-					{
-						outValue = (int)value;
-					}
-					if(value.GetType().Name == "float")
-					{
-						outValue = (int)((float)value);
-					}
-					if(value.GetType().Name == "string")
-					{
-						string value as string;
-
-						outValue = (int)((float)value);
-					}
-				} 
+				return false;
 			}
+
+			MethodInfo mInfo = type.GetMethod(typeNames[i], BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
+			if(mInfo == null)
+			{
+				Debug.LogError("Error NoFound Method => " + fullName);
+				return false;
+			}
+
+			currentObject = mInfo.Invoke(currentObject, null);
+			if(currentObject == null)
+			{
+				Debug.LogError("Error NoFound Method => " + fullName);
+				return false;
+			}
+
+			if(i == typeNamesLength-1)
+			{ 
+				Debug.Log(currentObject.GetType().Name);
+				if(currentObject.GetType().Name == TypeName_int)
+				{
+					outValue = (int)currentObject;
+					isSuccess = true;
+				}
+				else if(currentObject.GetType().Name == TypeName_float)
+				{
+					outValue = (int)((float)currentObject);
+					isSuccess = true;
+				}
+				else if(currentObject.GetType().Name == TypeName_string)
+				{   
+					if(int.TryParse(((string)currentObject), out outValue) == true)
+					{
+						isSuccess = true;
+					}
+					else
+					{
+						Debug.LogError("Error if(int.TryParse(((string)currentObject), out outValue) == true) NoFound Method => " + fullName);
+					} 
+				}
+			}
+			else
+			{
+				type = currentObject.GetType();
+			} 
 		}
-		return returnValue;
+		return isSuccess;
 	}
 }
 
@@ -117,15 +153,21 @@ public class test : MonoBehaviour
 		MethodInfo[] methodInfo = t.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
 		//methodInfo[0].
 		object [] aaaa = mm.GetCustomAttributes(true);
-	
-
-
+	 
 		System.Type TExposeble = System.Type.GetType("Exposeble");
 
 		MethodInfo[] TExposebleMethodInfo = TExposeble.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
 		//MethodInfo []methodInfoTExposeble = TExposeble.GetMembers(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
-		
-
+		int value = 0;
+		ExposebleMethod.InitTypeName();
+		if(ExposebleMethod.GetInt("Exposeble/get_Ex/Moon", ref value))
+		{
+			Debug.Log("Success =>" + value);
+		}
+		else
+		{
+			Debug.Log("Fail@@@");
+		}
 	}
 
 	void Update() 
