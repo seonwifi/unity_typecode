@@ -2,7 +2,8 @@
 using System.Collections;
 using System.Reflection;
 using System;
-
+using System.Collections.Generic;
+ 
 public class Abc
 {
 	[Attr_moon()]
@@ -40,7 +41,7 @@ public class Exposeble
 }
 public class ExposebleMethod
 {
-
+	//[Serializable]
 	static string TypeName_int 		= int.MaxValue.GetType().Name;
 	static string TypeName_long 	= long.MaxValue.GetType().Name;
 	static string TypeName_float 	= float.MaxValue.GetType().Name;
@@ -49,6 +50,7 @@ public class ExposebleMethod
 
 	static public bool GetHookingObject(ref string fullName, ref object outValue)
 	{
+
 		string[]	typeNames 		= fullName.Split(new char[]{'/'}); 
 		int 		typeNamesLength = typeNames.Length;
 
@@ -94,7 +96,7 @@ public class ExposebleMethod
 			
 			if(i == typeNamesLength-1)
 			{ 
-				Debug.Log(currentObject.GetType().Name);
+				//Debug.Log(currentObject.GetType().Name);
 	
 				outValue = currentObject; 
 				isSuccess = true;
@@ -303,6 +305,9 @@ public class test : MonoBehaviour
 
 	void Start() 
 	{
+		StopwatchWrap stopwatchWrap = new StopwatchWrap();
+
+
 		Abc a = new Abc();
 		System.Type t = System.Type.GetType("Abc");
 		MethodInfo mm = t.GetMethod("Moon");
@@ -316,20 +321,39 @@ public class test : MonoBehaviour
 		//MethodInfo []methodInfoTExposeble = TExposeble.GetMembers(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
 
 		string valueString = "";
-		if(ExposebleMethod.GetString("Exposeble/get_Ex/Moon", ref valueString))
-		{
-			Debug.Log("Success valueString  => " + valueString);
-		}
 
 		int value = 0; 
-		if(ExposebleMethod.GetInt("Exposeble/get_Ex/Moon", ref value))
+
+		for(int i = 0; i < 1000; ++i)
 		{
-			Debug.Log("Success =>" + value);
+			//valueString = Exposeble.Ex.Moon().ToString();
+			if(ExposebleMethod.GetString("Exposeble/get_Ex/Moon", ref valueString))
+			{
+				//Debug.Log("Success valueString  => " + valueString);
+			}
+//			if(ExposebleMethod.GetInt("Exposeble/get_Ex/Moon", ref value))
+//			{
+//				//Debug.Log("Success =>" + value);
+//			}
+//			else
+//			{
+//				//Debug.Log("Fail@@@");
+//			}
 		}
-		else
-		{
-			Debug.Log("Fail@@@");
-		}
+
+
+		this.gameObject.AddComponent<TestCoponent>();
+		stopwatchWrap.Start();
+
+		TestCoponent ttt = gameObject.GetComponent<TestCoponent>();
+		double second = stopwatchWrap.Stop();
+		string vavv = value.ToString();
+
+		//System.Threading.Thread.Sleep(1234);
+
+
+		Debug.Log("Second => " + second.ToString());
+		Debug.Log("Per Second => " + stopwatchWrap.ToStringFrame);
 	}
 
 	void Update() 
